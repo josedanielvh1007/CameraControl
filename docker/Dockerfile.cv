@@ -1,0 +1,43 @@
+FROM ros:humble-ros-core
+
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# 1. Instalar dependencias de sistema (GUI + Herramientas ROS)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-colcon-common-extensions \
+    python3-pip \
+    python3-tk \
+    python3-dev \
+    # Dependencias para PyAutoGUI y X11
+    libx11-6 \
+    libxtst6 \
+    libpng-dev \
+    # Dependencias para OpenCV (libGL)
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    build-essential \
+    sudo \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Instalar librerías de Python
+# Nota: Instalamos opencv-python-headless si no necesitas ventanas cv2.imshow 
+# o opencv-python si las necesitas (requiere configuración X11)
+RUN pip3 install --no-cache-dir \
+    pyautogui \
+    opencv-python
+
+# 3. Crear usuario con privilegios sudo
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+USER $USERNAME
+
+# 4. Configurar entorno ROS
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+
+ENV DISPLAY=:0

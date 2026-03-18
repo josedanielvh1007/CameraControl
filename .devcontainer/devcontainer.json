@@ -1,0 +1,36 @@
+{
+    "name": "Camera Control",
+    "image": "control-model:latest",
+    // Configuración de privilegios para acceder al ratón y pantalla del host
+    "runArgs": [
+        "--net=host",
+        "--privileged",
+        "--env=DISPLAY=${localEnv:DISPLAY}",
+        "--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    ],
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}",
+        "LIBGL_ALWAYS_SOFTWARE": "1", // Útil si hay problemas con drivers de video
+        "PYTHONPATH": "/opt/ros/humble/lib/python3.10/site-packages:${containerWorkspaceFolder}"
+    },
+    // Extensiones esenciales para desarrollo en ROS
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-iot.vscode-ros",
+                "ms-python.python",
+                "ms-vscode.cpptools",
+                "redhat.vscode-yaml"
+            ],
+            "settings": {
+                "python.analysis.extraPaths": [
+                    "/opt/ros/humble/lib/python3.10/site-packages"
+                ]
+            }
+        }
+    },
+    // Asegura que el usuario creado en el Dockerfile sea el que use VS Code
+    "remoteUser": "vscode",
+    // Comando para asegurar que las dependencias de ROS estén listas
+    "postCreateCommand": "sudo apt-get update && rosdep update"
+}
